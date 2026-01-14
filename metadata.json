@@ -1,0 +1,8 @@
+{
+  "name": "HRIS Mobile Pro",
+  "description": "A comprehensive HR Management and Attendance system featuring GPS tracking, face recognition, payroll, and reimbursement management.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
