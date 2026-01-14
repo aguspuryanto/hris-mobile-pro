@@ -9,6 +9,7 @@ import ReimbursementPage from './pages/Reimbursement';
 import OvertimePage from './pages/Overtime';
 import LoanPage from './pages/Loans';
 import ProgressPage from './pages/Progress';
+import LeavePage from './pages/Leave';
 import BottomNav from './components/BottomNav';
 import Header from './components/Header';
 import { User } from './types';
@@ -39,7 +40,7 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <div className="flex flex-col min-h-screen max-w-md mx-auto bg-gray-50 shadow-xl overflow-hidden relative">
+      <div className="flex flex-col min-h-screen max-w-md mx-auto bg-gray-50 shadow-xl overflow-hidden relative border-x border-gray-200">
         <Header user={user} onLogout={handleLogout} />
         
         <main className="flex-1 overflow-y-auto pb-24 p-4">
@@ -51,6 +52,7 @@ const App: React.FC = () => {
             <Route path="/overtime" element={<OvertimePage />} />
             <Route path="/loans" element={<LoanPage />} />
             <Route path="/progress" element={<ProgressPage />} />
+            <Route path="/leave" element={<LeavePage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

@@ -48,3 +48,13 @@ export interface Payroll {
   deductions: number;
   netPay: number;
 }
+
+export interface LeaveRequest {
+  id: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requestDate: string;
+}

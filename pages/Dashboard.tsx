@@ -12,7 +12,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     { label: 'Reimburse', icon: 'fa-receipt', color: 'bg-orange-100 text-orange-600', path: '/reimbursement' },
     { label: 'Overtime', icon: 'fa-clock', color: 'bg-blue-100 text-blue-600', path: '/overtime' },
     { label: 'Loans', icon: 'fa-hand-holding-dollar', color: 'bg-green-100 text-green-600', path: '/loans' },
-    { label: 'Leave', icon: 'fa-plane-departure', color: 'bg-purple-100 text-purple-600', path: '/attendance' },
+    { label: 'Leave', icon: 'fa-plane-departure', color: 'bg-purple-100 text-purple-600', path: '/leave' },
   ];
 
   return (
