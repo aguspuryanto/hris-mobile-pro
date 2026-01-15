@@ -7,8 +7,7 @@ interface AttendanceProps {
   user: User;
 }
 
-// Konfigurasi Lokasi Kantor (Contoh: Menara Monas, Jakarta)
-// Ganti dengan koordinat kantor Anda yang sebenarnya
+// Konfigurasi Lokasi Kantor (Ganti sesuai kebutuhan)
 const OFFICE_LOCATION = {
   lat: -7.301505688695009,
   lng: 112.78351636004648
@@ -25,9 +24,14 @@ const Attendance: React.FC<AttendanceProps> = ({ user }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Fungsi untuk menghitung jarak antara dua titik koordinat (dalam meter)
+  // Simulated history data
+  const [attendanceHistory] = useState([
+    { id: '1', date: '24 Oct', time: '08:32 AM', status: 'Present', aiStatus: 'Verified', location: 'HQ Office' },
+    { id: '2', date: '23 Oct', time: '08:45 AM', status: 'Late', aiStatus: 'Verified', location: 'HQ Office' },
+  ]);
+
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371e3; // Radius bumi dalam meter
+    const R = 6371e3; // Earth's radius in meters
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = 
@@ -54,14 +58,14 @@ const Attendance: React.FC<AttendanceProps> = ({ user }) => {
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      setError("Gagal mengakses kamera. Pastikan izin kamera diberikan.");
+      setError("Gagal mengakses kamera. Periksa izin perangkat.");
     }
   };
 
   const handleStartVerification = () => {
     setError(null);
     if (!("geolocation" in navigator)) {
-      setError("Browser Anda tidak mendukung geolokasi.");
+      setError("Perangkat Anda tidak mendukung geolokasi.");
       return;
     }
 
@@ -83,7 +87,7 @@ const Attendance: React.FC<AttendanceProps> = ({ user }) => {
         }
       },
       (err) => {
-        setError("Gagal mendapatkan lokasi. Pastikan GPS aktif dan izin diberikan.");
+        setError("Gagal mendapatkan lokasi. Pastikan GPS aktif.");
       },
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
@@ -102,7 +106,7 @@ const Attendance: React.FC<AttendanceProps> = ({ user }) => {
         stream?.getTracks().forEach(track => track.stop());
 
         setStep('verifying');
-        setStatusMessage("Gemini AI menganalisis biometrik Anda...");
+        setStatusMessage("Gemini AI memverifikasi wajah...");
 
         const result = await validateFaceImage(imageData);
         
@@ -129,48 +133,57 @@ const Attendance: React.FC<AttendanceProps> = ({ user }) => {
           <div className="flex flex-col items-center justify-center space-y-6 py-6">
             <div className="w-44 h-44 bg-indigo-50 rounded-full flex items-center justify-center relative">
               <div className="absolute inset-0 border-4 border-indigo-100 rounded-full animate-pulse opacity-50"></div>
-              <i className="fa-solid fa-location-crosshairs text-5xl text-indigo-600"></i>
+              <i className="fa-solid fa-location-dot text-5xl text-indigo-600"></i>
             </div>
             
             <div className="text-center space-y-2 px-6">
               <h3 className="text-xl font-bold text-gray-800">Cek Jangkauan Lokasi</h3>
               <p className="text-gray-500 text-sm">
-                Anda harus berada dalam radius <strong>{MAX_DISTANCE_METERS} meter</strong> dari kantor untuk melakukan clock-in.
+                Radius absen: <strong>{MAX_DISTANCE_METERS}m</strong> dari titik kantor.
               </p>
             </div>
 
             {currentDistance !== null && (
-              <div className={`p-3 rounded-xl border flex items-center space-x-3 w-full ${currentDistance <= MAX_DISTANCE_METERS ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+              <div className={`p-4 rounded-2xl border flex items-center space-x-3 w-full ${currentDistance <= MAX_DISTANCE_METERS ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
                 <i className={`fa-solid ${currentDistance <= MAX_DISTANCE_METERS ? 'fa-circle-check' : 'fa-circle-xmark'}`}></i>
-                <span className="text-xs font-bold">
-                  Jarak Anda: {Math.round(currentDistance)} meter dari kantor
-                </span>
+                <span className="text-xs font-bold">Jarak: {Math.round(currentDistance)} meter</span>
               </div>
             )}
 
             <button 
               onClick={handleStartVerification}
-              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center space-x-3 active:scale-95"
+              className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-100 flex items-center justify-center space-x-3 active:scale-95"
             >
-              <i className="fa-solid fa-fingerprint"></i>
-              <span>Cek Lokasi & Absen</span>
+              <i className="fa-solid fa-camera"></i>
+              <span>Verifikasi & Absen</span>
             </button>
             
             {error && (
-              <div className="w-full bg-red-100 text-red-700 p-4 rounded-xl text-xs font-bold border border-red-200 flex items-start animate-in zoom-in duration-300">
+              <div className="w-full bg-red-100 text-red-700 p-4 rounded-xl text-xs font-bold border border-red-200 flex items-start">
                 <i className="fa-solid fa-triangle-exclamation mr-3 mt-0.5"></i>
                 <span>{error}</span>
               </div>
             )}
           </div>
 
-          <section className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Ketentuan Absensi</h4>
-            <ul className="text-[11px] text-gray-600 space-y-2">
-              <li className="flex items-center"><i className="fa-solid fa-check text-indigo-500 mr-2"></i> GPS harus aktif (High Accuracy)</li>
-              <li className="flex items-center"><i className="fa-solid fa-check text-indigo-500 mr-2"></i> Wajah harus terlihat jelas tanpa masker/kacamata hitam</li>
-              <li className="flex items-center"><i className="fa-solid fa-check text-indigo-500 mr-2"></i> Maksimal jarak 100m dari titik kantor</li>
-            </ul>
+          <section className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-800">Log Terakhir</h3>
+            <div className="space-y-3">
+              {attendanceHistory.map((log) => (
+                <div key={log.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400">
+                      <i className="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-800">{log.date} • {log.time}</p>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{log.aiStatus} By Gemini AI</span>
+                    </div>
+                  </div>
+                  <span className="bg-green-100 text-green-600 text-[10px] font-bold px-2 py-1 rounded-lg">Present</span>
+                </div>
+              ))}
+            </div>
           </section>
         </div>
       )}
@@ -182,20 +195,13 @@ const Attendance: React.FC<AttendanceProps> = ({ user }) => {
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-64 h-80 border-2 border-indigo-400/50 rounded-[100px] relative">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">Scan Wajah</div>
-                <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-indigo-500 rounded-tl-2xl"></div>
-                <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-indigo-500 rounded-tr-2xl"></div>
-                <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-indigo-500 rounded-bl-2xl"></div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-indigo-500 rounded-br-2xl"></div>
               </div>
             </div>
-            {error && (
-              <div className="absolute top-4 inset-x-4 bg-red-600 text-white text-xs p-3 rounded-xl text-center font-bold shadow-lg animate-bounce">{error}</div>
-            )}
           </div>
           
           <button 
             onClick={captureAndVerify}
-            className="w-24 h-24 bg-white border-[6px] border-indigo-600 rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-transform"
+            className="w-24 h-24 bg-white border-[6px] border-indigo-600 rounded-full shadow-2xl flex items-center justify-center active:scale-90"
           >
             <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white">
               <i className="fa-solid fa-camera text-2xl"></i>
@@ -226,33 +232,23 @@ const Attendance: React.FC<AttendanceProps> = ({ user }) => {
           <div className="w-32 h-32 bg-green-500 rounded-full flex items-center justify-center shadow-2xl shadow-green-200">
              <i className="fa-solid fa-check text-5xl text-white"></i>
           </div>
-          
           <div className="text-center px-6">
             <h3 className="text-3xl font-black text-gray-800">Berhasil!</h3>
             <p className="text-gray-500 mt-2 font-medium">Absensi Anda telah tercatat.</p>
           </div>
-
           <div className="bg-white p-6 rounded-[32px] w-full shadow-sm border border-gray-100 space-y-4">
              <div className="flex justify-between items-center py-2 border-b border-gray-50">
                 <span className="text-xs font-bold text-gray-400 uppercase">Jarak</span>
-                <span className="text-sm font-bold text-gray-800">{currentDistance ? Math.round(currentDistance) : 0} meter</span>
-             </div>
-             <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                <span className="text-xs font-bold text-gray-400 uppercase">Waktu</span>
-                <span className="text-sm font-bold text-gray-800">{new Date().toLocaleTimeString()}</span>
+                <span className="text-sm font-bold text-gray-800">{Math.round(currentDistance || 0)}m</span>
              </div>
              <div className="pt-2">
                 <span className="text-[10px] font-bold text-indigo-400 uppercase block mb-2 tracking-widest">Analisis AI</span>
                 <p className="text-xs text-gray-600 leading-relaxed bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/30">
-                  {aiAnalysis || "Identitas terkonfirmasi. Deteksi keaktifan valid."}
+                  {aiAnalysis || "Identity confirmed. Liveness verified."}
                 </p>
              </div>
           </div>
-
-          <button 
-            onClick={() => setStep('info')}
-            className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold"
-          >
+          <button onClick={() => setStep('info')} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold">
             Selesai
           </button>
         </div>
